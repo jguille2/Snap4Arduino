@@ -38,6 +38,10 @@ Dispatcher.prototype.connectBoard = function (serialPort) {
     return board.id;
 };
 
+Dispatcher.prototype.getBoards = function () {
+    return Boards;
+};
+
 Dispatcher.prototype.getBoard = function (boardId) {
     return Boards[boardId];
 };
@@ -7023,13 +7027,14 @@ EventEmitter.prototype.emit = function(type) {
         (isObject(this._events.error) && !this._events.error.length)) {
       er = arguments[1];
       if (er instanceof Error) {
-        throw er; // Unhandled 'error' event
+        console.log(er); // Unhandled 'error' event
       } else {
         // At least give some kind of context to the user
         var err = new Error('Uncaught, unspecified "error" event. (' + er + ')');
         err.context = er;
-        throw err;
+        console.log(err);
       }
+      return;
     }
   }
 
@@ -8030,6 +8035,7 @@ function Board(port, options, callback) {
 
   this.transport.on("disconnect", function() {
     this.emit("disconnect");
+    this.version.major = null;
   }.bind(this));
 
   this.transport.on("open", function() {
@@ -11376,7 +11382,7 @@ var StringDecoder;
 
 util.inherits(Readable, Stream);
 
-var kProxyEvents = ['error', 'close', 'destroy', 'pause', 'resume'];
+var kProxyEvents = ['disconnect', 'error', 'close', 'destroy', 'pause', 'resume'];
 
 function prependListener(emitter, event, fn) {
   // Sadly this is not cacheable as some libraries bundle their own
@@ -13999,7 +14005,7 @@ SerialPort.prototype._disconnected = function(err) {
 
 SerialPort.prototype.close = function(callback) {
   this.paused = true;
-
+  
   if (this.closing) {
     debug('close attempted, but port is already closing');
     return this._error(new Error('Port is not open'), callback);

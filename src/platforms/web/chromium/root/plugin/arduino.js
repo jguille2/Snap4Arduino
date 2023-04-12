@@ -37,6 +37,18 @@ window.onunload = function (evt) {
     ide.sprites.asArray().forEach(function (each) { each.arduino.disconnect(true); });
 };
 
+Arduino.prototype.keepAlive = function () {
+this.board.getVersion();
+    if (Arduino.keepAlive) {
+        if (this.board.version.major == null) {
+            // Connection dropped! Let's disconnect!
+            this.gotUnplugged = true;
+            this.board.sp.close();
+            this.closeHandler();
+        }
+    }
+};
+
 Arduino.prototype.connect = function (port) {
     var myself = this;
 
@@ -61,7 +73,7 @@ Arduino.prototype.connect = function (port) {
 
                             myself.keepAliveIntervalID = setInterval(function() { myself.keepAlive() }, 5000);
 
-                            // These should be handled at plugin side
+                            // This is workarounded (only disconnect event) with the keepAlive service
                             // myself.board.sp.on('disconnect', myself.disconnectHandler);
                             // myself.board.sp.on('close', myself.closeHandler);
                             // myself.board.sp.on('error', myself.errorHandler);
@@ -97,7 +109,7 @@ Arduino.prototype.connect = function (port) {
 Arduino.prototype.populateBoard = function (board) {
     board.events = {};
 
-    board.sp.close = postal.commandSender('closeSerial', board.id);
+    board.sp.close = function () { postal.sendCommand('closeSerial', [board.id]); };
     board.sp.removeListener = nop;
     board.sp.removeAllListeners = nop;
 
@@ -127,6 +139,9 @@ Arduino.prototype.populateBoard = function (board) {
     };
     board.i2cReadOnce = function (address, reg, callback) { postal.sendCommand('i2cReadOnce', [board.id, address, reg], function (response) { board['i2cResponse-' + Number(address)] = response; }); };
     board.i2cWriteReg = function (address, reg, byte) {postal.sendCommand('i2cWriteReg', [board.id, address, reg, byte]); };
+    board.getBoards = function () { postal.sendCommand('getBoards', [], function(response) { board.boards = response}); };
+    board.getBoard = function () { postal.sendCommand('getBoard', [board.id], function(response) {board = response}); };
+    board.getVersion = function () { postal.sendCommand('getBoard', [board.id], function(response) {board.version.major = response.version.major}); };
 };
 
 // Fake Buffer definition, needed by some Firmata extensions
