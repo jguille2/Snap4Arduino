@@ -142,8 +142,10 @@ Arduino.prototype.populateBoard = function (board) {
     board.getBoards = function () { postal.sendCommand('getBoards', [], function(response) { board.boards = response}); };
     board.getBoard = function () { postal.sendCommand('getBoard', [board.id], function(response) {board = response}); };
     board.getVersion = function () { postal.sendCommand('getBoard', [board.id], function(response) {board.version.major = response.version.major}); };
-};
 
+    board.reset = function () { postal.sendCommand('reset', [board.id]); };
+    board.justClose = function () { postal.sendCommand('justClose', [board.id]); };
+};
 // Fake Buffer definition, needed by some Firmata extensions
 
 function Buffer (data) {

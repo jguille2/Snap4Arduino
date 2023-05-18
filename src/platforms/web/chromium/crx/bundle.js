@@ -22,6 +22,14 @@ chrome.runtime.onMessageExternal.addListener(
 
 function Dispatcher() {};
 
+Dispatcher.prototype.reset = function (boardId) {
+    Boards[boardId].reset();
+    //Boards[boardId].writeToTransport(Boards[boardId], [SYSTEM_RESET]);
+};
+
+Dispatcher.prototype.justClose = function (boardId) {
+   Boards[boardId].sp.close();
+};
 Dispatcher.prototype.getDevices = function () {
     return serialPorts;
 };
@@ -47,9 +55,9 @@ Dispatcher.prototype.getBoard = function (boardId) {
 };
 
 Dispatcher.prototype.closeSerial = function (boardId) {
-    Boards[boardId].reset();
+    //Boards[boardId].reset();
     Boards[boardId].sp.close();
-    Boards[boardId] = null;
+    //Boards[boardId] = null;
 };
 
 Dispatcher.prototype.serialWrite = function (boardId, contents) {
